@@ -54,6 +54,11 @@
       margin-top: 2rem;
       font-size: 0.9rem;
       color: #666;
+      text-align: center;
+    }
+    abbr {
+      border-bottom: 1px dotted;
+      cursor: help;
     }
   </style>
 </head>
@@ -64,7 +69,7 @@
       <tr>
         <th>Service</th>
         <th>Status</th>
-        <th>Last Seen</th>
+        <th>Last Seen (CEST)</th>
       </tr>
     </thead>
     <tbody>
@@ -73,70 +78,83 @@
   </table>
 
   <div class="footer">
-    Updated: <span id="lastUpdated">–</span>
+    Times shown in <abbr title="Central European Summer Time">CEST</abbr><br>
+    Updated: <span id="lastUpdated">–</span> (CEST)
   </div>
 
- <script>
-  const DATA_FILE = 'epoch_dashboard_log.md'; // or .txt if you rename it
-  
-  async function fetchData() {
-    try {
-      const res = await fetch(DATA_FILE);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const raw = await res.text();
-  
-      // pull out only the lines that look like table rows
-      const lines = raw
-        .split('\n')
-        .filter(l => /^\|\s*\d{4}-\d{2}-\d{2}/.test(l));  
-  
-      // If your file actually has a header + separator, drop them:
-      if (
-        lines.length >= 2 &&
-        lines[0].includes('Service') &&
-        /^\|\s*:-+/.test(lines[1])
-      ) {
-        lines.splice(0,2);
-      }
-  
-      // parse each row into columns
-      const latest = {};
-      lines.forEach(line => {
-        // strip leading/trailing `|` and split on `|`
-        const cols = line
-          .replace(/^\|\s*/, '')
-          .replace(/\s*\|$/, '')
-          .split(/\s*\|\s*/);
-        const [time, service, status, lastSeen] = cols;
-        if (!latest[service] || new Date(time) > new Date(latest[service].time)) {
-          latest[service] = { time, status, lastSeen };
+  <script>
+    async function fetchData() {
+      try {
+        // 1. Fetch the raw table file (must be served as plain text)
+        const res = await fetch('epoch_dashboard_log.md');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const raw = await res.text();
+
+        // 2. Only keep lines that start with a date (YYYY-MM-DD)
+        const lines = raw
+          .split('\n')
+          .filter(l => /^\|\s*\d{4}-\d{2}-\d{2}/.test(l));
+
+        // 3. If you have a Markdown header + separator, drop them:
+        if (
+          lines.length >= 2 &&
+          lines[0].includes('Service') &&
+          /^\|\s*:-+/.test(lines[1])
+        ) {
+          lines.splice(0, 2);
         }
-      });
-  
-      // rebuild the table
-      const tbody = document.querySelector('tbody');
-      tbody.innerHTML = '';
-      for (const [service, info] of Object.entries(latest)) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${service}</td>
-          <td class="status ${info.status.toLowerCase()}">${info.status}</td>
-          <td>${info.lastSeen}</td>
-        `;
-        tbody.appendChild(tr);
+
+        // 4. Parse and dedupe by latest per service
+        const latest = {};
+        lines.forEach(line => {
+          const [time, service, status, lastSeen] = line
+            .replace(/^\|\s*/, '')
+            .replace(/\s*\|$/, '')
+            .split(/\s*\|\s*/);
+
+          // parse original UTC timestamp by appending "Z"
+          const utcDate = new Date(time.replace(' ', 'T') + 'Z');
+          // convert to Berlin time (CEST)
+          const cest = utcDate.toLocaleString('de-DE', {
+            timeZone: 'Europe/Berlin',
+            hour12: false
+          });
+
+          if (!latest[service] || utcDate > latest[service].date) {
+            latest[service] = {
+              date: utcDate,
+              status,
+              displayTime: `${cest} CEST`
+            };
+          }
+        });
+
+        // 5. Build the table
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = '';
+        Object.entries(latest).forEach(([service, info]) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${service}</td>
+            <td class="status ${info.status.toLowerCase()}">${info.status}</td>
+            <td>${info.displayTime}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // 6. Update the footer timestamp in Berlin time
+        document.getElementById('lastUpdated').textContent =
+          new Date().toLocaleString('de-DE', {
+            timeZone: 'Europe/Berlin',
+            hour12: false
+          });
+      } catch (e) {
+        console.error('Failed to load data:', e);
       }
-  
-      // stamp the page with “last updated”
-      document.getElementById('lastUpdated').textContent =
-        new Date().toLocaleString('en-GB', { timeZone: 'Europe/Berlin' });
-  
-    } catch (e) {
-      console.error('Failed to load data:', e);
     }
-  }
-  
-  fetchData();
-  setInterval(fetchData, 10_000);
-</script>
+
+    fetchData();
+    setInterval(fetchData, 10_000);
+  </script>
 </body>
 </html>
