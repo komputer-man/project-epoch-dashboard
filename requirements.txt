@@ -1,0 +1,16 @@
+# Python dependencies for epoch_curses_dashboard
+
+# Windows-only dependencies:
+win10toast>=0.9
+windows-curses>=2.3.0; sys_platform == "win32"
+
+# macOS:
+# - `osascript` (built-in)
+# - Optional `terminal-notifier` for richer notifications (install via Homebrew: `brew install terminal-notifier`)
+
+# Linux:
+# - `notify-send` (usually provided by the libnotify-bin package; install via your distro's package manager, e.g., `sudo apt install libnotify-bin`)
+
+# Note:
+# If the optional CLI tools (`terminal-notifier` on macOS, `notify-send` on Linux) are missing,
+# the script will fallback to the built-in mechanism on that platform.
