@@ -16,6 +16,7 @@ INTERVAL = 10    # seconds until next refresh
 TIMEOUT  = 1     # socket timeout in seconds
 DEFAULT_LOGFILE = "epoch_dashboard_log.md"
 SERVICES = [
+    ("Website",        "198.185.159.145",   80),
     ("Auth Server",    "198.244.165.233", 3724),
     ("Kezan (PvE)",    "198.244.165.233", 8085),
     ("Gurubashi (PvP)","198.244.165.233", 8086),
