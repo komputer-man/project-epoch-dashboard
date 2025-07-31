@@ -5,7 +5,7 @@ A minimal terminal-based monitor that checks TCP ports for configured services a
 ## Screenshot
 
 <!-- Replace with your screenshot -->
-![Dashboard Screenshot]()
+![Dashboard Screenshot](https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/refs/heads/main/dashboard.png)
 
 ## Features
 
