@@ -1,16 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Epoch Dashboard</title>
+  <title>ProjectEpoch Dashboard</title>
   <style>
+    /* Light/Dark theme variables */
     :root {
       --bg: #f5f5f5;
       --fg: #333;
       --online: #2a9d8f;
       --offline: #e76f51;
     }
+    [data-theme="dark"] {
+      --bg: #333;
+      --fg: #f5f5f5;
+      --online: #2a9d8f;
+      --offline: #e76f51;
+    }
+
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -20,7 +28,23 @@
       flex-direction: column;
       align-items: center;
       padding: 2rem;
+      position: relative;
     }
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+    }
+    .theme-toggle button {
+      background: none;
+      border: none;
+      color: var(--fg);
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+
     .header-img {
       max-height: 200px;
       width: auto;
@@ -54,7 +78,7 @@
     .footer {
       margin-top: 2rem;
       font-size: 0.9rem;
-      color: #666;
+      color: var(--fg);
       text-align: center;
       line-height: 1.4;
     }
@@ -69,7 +93,12 @@
   </style>
 </head>
 <body>
-  <!-- Replace the text heading with the logo image -->
+  <!-- Theme switch -->
+  <div class="theme-toggle">
+    <button id="themeToggle" aria-label="Toggle theme">Dark Mode</button>
+  </div>
+
+  <!-- Logo image -->
   <img
     src="https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/refs/heads/main/docs/website-header.png"
     alt="Epoch Dashboard Logo"
@@ -93,6 +122,7 @@
     Times shown in <abbr title="Central European Summer Time">CEST</abbr><br>
     Updated: <span id="lastUpdated">–</span> (CEST)<br><br>
     ⚙️ This dashboard automatically refreshes every 5 minutes.<br>
+    <em>Note: The GitHub workflow that updates the log and the site’s refresh schedule may not be perfectly in sync, so data might not always be 100% up-to-the-minute.</em><br><br>
     🖥️ For a live mode with continuous polling, clone the terminal tool:<br>
     <a href="https://github.com/komputer-man/project-epoch-dashboard/tree/main" target="_blank">
       github.com/komputer-man/project-epoch-dashboard
@@ -100,21 +130,33 @@
   </div>
 
   <script>
+    // Theme toggle logic
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let currentTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    themeToggle.textContent = currentTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    });
+
+    // Data fetch & render logic
     async function fetchData() {
       try {
         const res = await fetch('epoch_dashboard_log.md');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.text();
 
-        // Only keep lines that start with a date (YYYY-MM-DD)
         const lines = raw
           .split('\n')
           .filter(l => /^\|\s*\d{4}-\d{2}-\d{2}/.test(l));
 
-        // Remove markdown header/separator if present
         if (lines[0]?.includes('Service')) lines.splice(0, 2);
 
-        // Determine the latest entry per service
         const latest = {};
         lines.forEach(line => {
           const [ time, service, status, lastSeen ] = line
@@ -127,7 +169,6 @@
           }
         });
 
-        // Render the table
         const tbody = document.querySelector('tbody');
         tbody.innerHTML = '';
         Object.entries(latest).forEach(([service, info]) => {
@@ -135,7 +176,6 @@
           if (info.lastSeen === 'N/A') {
             displayLastSeen = 'N/A';
           } else {
-            // Convert GitHub UTC → Berlin CEST
             const utc = new Date(info.lastSeen.replace(' ', 'T') + 'Z');
             displayLastSeen = utc.toLocaleString('de-DE', {
               timeZone: 'Europe/Berlin',
@@ -152,7 +192,6 @@
           tbody.appendChild(tr);
         });
 
-        // Footer “last updated” timestamp in CEST
         document.getElementById('lastUpdated').textContent =
           new Date().toLocaleString('de-DE', {
             timeZone: 'Europe/Berlin',
@@ -164,8 +203,7 @@
     }
 
     fetchData();
-    // Refresh every 5 minutes (300,000 ms)
-    setInterval(fetchData, 300_000);
+    setInterval(fetchData, 300_000); // Refresh every 5 minutes
   </script>
 </body>
 </html>
