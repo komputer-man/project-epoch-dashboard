@@ -25,7 +25,7 @@ jobs:
       # Step C: run the script
       - name: Run epoch script once
         run: |
-          python epoch_curses_dashboard.py --once --output docs/epoch_dashboard_log.md
+          python epoch-dashboard.py --once --output docs/epoch_dashboard_log.md
 
       # Step D: commit any changes
       - name: Commit and push changes
