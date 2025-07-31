@@ -76,38 +76,67 @@
     Updated: <span id="lastUpdated">–</span>
   </div>
 
-  <script>
-    async function fetchData() {
-      try {
-        const res = await fetch('epoch_dashboard_log.md');
-        const text = await res.text();
-        const lines = text.trim().split('\n').slice(2);
-        const latest = {};
-        lines.forEach(line => {
-          const cols = line.replace(/^\| | \|$/g, '').split(' | ');
-          const [time, service, status, lastSeen] = cols;
-          if (!latest[service] || new Date(time) > new Date(latest[service].time)) {
-            latest[service] = { time, status, lastSeen };
-          }
-        });
-        const tbody = document.querySelector('tbody');
-        tbody.innerHTML = '';
-        for (const [service, info] of Object.entries(latest)) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${service}</td>
-            <td class="status ${info.status.toLowerCase()}">${info.status}</td>
-            <td>${info.lastSeen}</td>
-          `;
-          tbody.appendChild(tr);
-        }
-        document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
-      } catch (e) {
-        console.error('Failed to load data', e);
+ <script>
+  const DATA_FILE = 'epoch_dashboard_log.md'; // or .txt if you rename it
+  
+  async function fetchData() {
+    try {
+      const res = await fetch(DATA_FILE);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const raw = await res.text();
+  
+      // pull out only the lines that look like table rows
+      const lines = raw
+        .split('\n')
+        .filter(l => /^\|\s*\d{4}-\d{2}-\d{2}/.test(l));  
+  
+      // If your file actually has a header + separator, drop them:
+      if (
+        lines.length >= 2 &&
+        lines[0].includes('Service') &&
+        /^\|\s*:-+/.test(lines[1])
+      ) {
+        lines.splice(0,2);
       }
+  
+      // parse each row into columns
+      const latest = {};
+      lines.forEach(line => {
+        // strip leading/trailing `|` and split on `|`
+        const cols = line
+          .replace(/^\|\s*/, '')
+          .replace(/\s*\|$/, '')
+          .split(/\s*\|\s*/);
+        const [time, service, status, lastSeen] = cols;
+        if (!latest[service] || new Date(time) > new Date(latest[service].time)) {
+          latest[service] = { time, status, lastSeen };
+        }
+      });
+  
+      // rebuild the table
+      const tbody = document.querySelector('tbody');
+      tbody.innerHTML = '';
+      for (const [service, info] of Object.entries(latest)) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${service}</td>
+          <td class="status ${info.status.toLowerCase()}">${info.status}</td>
+          <td>${info.lastSeen}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+  
+      // stamp the page with “last updated”
+      document.getElementById('lastUpdated').textContent =
+        new Date().toLocaleString('en-GB', { timeZone: 'Europe/Berlin' });
+  
+    } catch (e) {
+      console.error('Failed to load data:', e);
     }
-    fetchData();
-    setInterval(fetchData, 10000);
-  </script>
+  }
+  
+  fetchData();
+  setInterval(fetchData, 10_000);
+</script>
 </body>
 </html>
