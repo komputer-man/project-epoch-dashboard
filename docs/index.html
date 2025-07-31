@@ -73,7 +73,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Rows will be injected here -->
+      <!-- Rows injected here -->
     </tbody>
   </table>
 
@@ -85,64 +85,57 @@
   <script>
     async function fetchData() {
       try {
-        // 1. Fetch the raw table file (must be served as plain text)
         const res = await fetch('epoch_dashboard_log.md');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.text();
 
-        // 2. Only keep lines that start with a date (YYYY-MM-DD)
+        // keep only actual table rows
         const lines = raw
           .split('\n')
           .filter(l => /^\|\s*\d{4}-\d{2}-\d{2}/.test(l));
 
-        // 3. If you have a Markdown header + separator, drop them:
-        if (
-          lines.length >= 2 &&
-          lines[0].includes('Service') &&
-          /^\|\s*:-+/.test(lines[1])
-        ) {
-          lines.splice(0, 2);
-        }
+        // drop markdown header/separator if present
+        if (lines[0]?.includes('Service')) lines.splice(0, 2);
 
-        // 4. Parse and dedupe by latest per service
+        // pick the latest check for each service
         const latest = {};
         lines.forEach(line => {
-          const [time, service, status, lastSeen] = line
+          const [ time, service, status, lastSeen ] = line
             .replace(/^\|\s*/, '')
             .replace(/\s*\|$/, '')
             .split(/\s*\|\s*/);
 
-          // parse original UTC timestamp by appending "Z"
-          const utcDate = new Date(time.replace(' ', 'T') + 'Z');
-          // convert to Berlin time (CEST)
-          const cest = utcDate.toLocaleString('de-DE', {
-            timeZone: 'Europe/Berlin',
-            hour12: false
-          });
-
-          if (!latest[service] || utcDate > latest[service].date) {
-            latest[service] = {
-              date: utcDate,
-              status,
-              displayTime: `${cest} CEST`
-            };
+          if (!latest[service] || time > latest[service].time) {
+            latest[service] = { time, status, lastSeen };
           }
         });
 
-        // 5. Build the table
+        // render the table
         const tbody = document.querySelector('tbody');
         tbody.innerHTML = '';
         Object.entries(latest).forEach(([service, info]) => {
+          let displayLastSeen;
+          if (info.lastSeen === 'N/A') {
+            displayLastSeen = 'N/A';
+          } else {
+            // convert GitHub UTC → Berlin CEST
+            const utc = new Date(info.lastSeen.replace(' ', 'T') + 'Z');
+            displayLastSeen = utc.toLocaleString('de-DE', {
+              timeZone: 'Europe/Berlin',
+              hour12: false
+            }) + ' CEST';
+          }
+
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${service}</td>
             <td class="status ${info.status.toLowerCase()}">${info.status}</td>
-            <td>${info.displayTime}</td>
+            <td>${displayLastSeen}</td>
           `;
           tbody.appendChild(tr);
         });
 
-        // 6. Update the footer timestamp in Berlin time
+        // footer “last updated” in CEST
         document.getElementById('lastUpdated').textContent =
           new Date().toLocaleString('de-DE', {
             timeZone: 'Europe/Berlin',
