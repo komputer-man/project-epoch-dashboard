@@ -307,7 +307,7 @@
           card.innerHTML = `
             <div class="service-name">${service}</div>
             <div class="status ${info.status.toLowerCase()}">${info.status}</div>
-            <div class="last-seen">Last Seen: ${displayLastSeen}</div>
+            <div class="last-seen">Last Seen:<br>${displayLastSeen}</div>
           `;
           grid.appendChild(card);
         });
