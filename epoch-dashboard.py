@@ -10,6 +10,7 @@ import subprocess
 import shutil
 import platform
 import sys
+import urllib.request
 
 # ===== Configuration =====
 INTERVAL = 10    # seconds until next refresh
@@ -17,6 +18,7 @@ TIMEOUT  = 1     # socket timeout in seconds
 DEFAULT_LOGFILE = "epoch_dashboard_log.md"
 SERVICES = [
     ("Website",        "198.185.159.145",   80),
+    ("Registration",   "https://account.project-epoch.net", "REG"),  # SPECIAL!
     ("Auth Server",    "198.244.165.233", 3724),
     ("Kezan (PvE)",    "198.244.165.233", 8085),
     ("Gurubashi (PvP)","198.244.165.233", 8086),
@@ -27,7 +29,6 @@ SERVICES = [
 last_seen = {name: "N/A" for name, _, _ in SERVICES}
 prev_status = {name: None for name, _, _ in SERVICES}
 
-
 def check_service(ip, port):
     """Return True if TCP port is open."""
     try:
@@ -36,6 +37,15 @@ def check_service(ip, port):
     except Exception:
         return False
 
+def check_registration_open(url):
+    """Checks if registration is open by parsing the website."""
+    try:
+        with urllib.request.urlopen(url, timeout=TIMEOUT) as response:
+            html = response.read().decode("utf-8", errors="ignore")
+            # If the string is present, registration is closed
+            return "Registration to Project Epoch is not currently enabled" not in html
+    except Exception:
+        return False  # treat as closed/unavailable if error
 
 def log_status(service, status, last, logfile):
     """Append a status line to the markdown log."""
@@ -43,7 +53,6 @@ def log_status(service, status, last, logfile):
     line = f"| {ts} | {service} | {status} | {last} |\n"
     with open(logfile, "a") as f:
         f.write(line)
-
 
 def send_notification(message, title="Epoch Dashboard"):
     """Cross-platform notification: macOS, Linux, Windows."""
@@ -66,14 +75,11 @@ def send_notification(message, title="Epoch Dashboard"):
         except ImportError:
             pass
 
-
 def notify_change(service, status):
     send_notification(f"{service} is now {status}")
 
-
 def notify_start():
     send_notification("Dashboard has started")
-
 
 def run_once(logfile):
     """Run a single check pass, log all statuses once."""
@@ -83,15 +89,18 @@ def run_once(logfile):
             f.write("| Time | Service | Status | Last Seen |\n")
             f.write("| ---- | ------- | ------ | --------- |\n")
         for name, ip, port in SERVICES:
-            ok = check_service(ip, port)
-            status = "Online" if ok else "Offline"
+            if port == "REG":
+                ok = check_registration_open(ip)
+                status = "Online" if ok else "Offline"   # You can also use "Open"/"Closed" here!
+            else:
+                ok = check_service(ip, port)
+                status = "Online" if ok else "Offline"
             ts = time.strftime("%Y-%m-%d %H:%M:%S")
             if ok:
                 last_seen[name] = ts
             last = last_seen[name]
             f.write(f"| {ts} | {name} | {status} | {last} |\n")
     return
-
 
 def draw_dashboard(stdscr, logfile):
     curses.curs_set(0)
@@ -103,8 +112,12 @@ def draw_dashboard(stdscr, logfile):
         stdscr.addstr(0, max(0, (width - len(title)) // 2), title, curses.A_BOLD)
         stdscr.addstr(1, 0, time.strftime("Updated: %a %d %b %Y %H:%M:%S"))
         for idx, (name, ip, port) in enumerate(SERVICES, start=3):
-            ok = check_service(ip, port)
-            status = "Online" if ok else "Offline"
+            if port == "REG":
+                ok = check_registration_open(ip)
+                status = "Online" if ok else "Offline"
+            else:
+                ok = check_service(ip, port)
+                status = "Online" if ok else "Offline"
             old = prev_status[name]
             # state change handling
             if old is not None and status != old:
@@ -118,7 +131,7 @@ def draw_dashboard(stdscr, logfile):
             sym = "✔" if ok else "✖"
             col = curses.color_pair(2) if ok else curses.color_pair(1)
             stdscr.addstr(idx, 2, sym + " ", col)
-            stdscr.addstr(idx, 4, f"{name} ({ip}:{port})")
+            stdscr.addstr(idx, 4, f"{name} ({ip if port != 'REG' else ''}{'' if port == 'REG' else f':{port}'})")
             last = last_seen[name]
             label = "Last seen:"
             x = width - len(label) - 1 - len(last)
@@ -130,7 +143,6 @@ def draw_dashboard(stdscr, logfile):
             time.sleep(1)
         if stdscr.getch() in (ord('q'), ord('Q')):
             break
-
 
 def main():
     parser = argparse.ArgumentParser(description="Epoch Dashboard TUI and logger")
