@@ -7,6 +7,7 @@
   --card-radius: 1.3rem;
   --shadow: 0 2px 16px 0 rgba(0,0,0,0.07);
 }
+
 [data-theme="dark"] {
   --bg: #23242a;
   --fg: #f5f5f5;
@@ -14,14 +15,17 @@
   --online: #2a9d8f;
   --offline: #e76f51;
 }
+
 html, body {
   background: var(--bg);
   color: var(--fg);
-  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
   min-height: 100vh;
   box-sizing: border-box;
 }
+
 body {
   display: flex;
   flex-direction: column;
@@ -30,12 +34,14 @@ body {
   padding: 0 0 3rem 0;
   position: relative;
 }
+
 .theme-toggle {
   position: absolute;
   top: 1.4rem;
   right: 2rem;
   z-index: 2;
 }
+
 .theme-toggle button {
   background: none;
   border: none;
@@ -45,15 +51,37 @@ body {
   text-decoration: underline;
   letter-spacing: 0.02em;
 }
+
+/* Logo zentriert */
 .header-img {
+  display: block;
+  margin: 2.3rem auto 0.7rem auto;
   max-height: 160px;
   width: auto;
-  margin-top: 2.3rem;
-  margin-bottom: 0.7rem;
   border: none;
   border-radius: 0;
   box-shadow: none;
 }
+
+/* Intro-Titel und Text */
+header h1 {
+  text-align: center;
+  font-size: 1.7rem;
+  margin: 0.7rem 0 0.4rem 0;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+header p {
+  max-width: 700px;
+  margin: 0 auto 1.7rem auto;
+  font-size: 1.03rem;
+  text-align: center;
+  line-height: 1.5;
+  color: #666;
+}
+
+/* Grid für Statuskarten */
 .service-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -63,6 +91,7 @@ body {
   margin: 2.2rem 0 2.1rem 0;
   align-items: stretch;
 }
+
 .service-card {
   background: var(--box);
   border-radius: var(--card-radius);
@@ -75,9 +104,11 @@ body {
   position: relative;
   transition: box-shadow 0.18s;
 }
+
 .service-card:hover {
   box-shadow: 0 4px 22px 0 rgba(0,0,0,0.12);
 }
+
 .service-name {
   font-size: 1.12rem;
   font-weight: 600;
@@ -87,12 +118,14 @@ body {
   align-items: center;
   gap: 0.45em;
 }
+
 .status {
   font-weight: 600;
   font-size: 1.07rem;
   margin-bottom: 0.1rem;
   margin-right: 0.2em;
 }
+
 .status.online::before, .status.offline::before {
   content: '';
   display: inline-block;
@@ -105,14 +138,22 @@ body {
   opacity: 0.75;
   animation: status-pulse 1.5s infinite alternate;
 }
-.status.online { color: var(--online);}
-.status.offline { color: var(--offline);}
+
+.status.online {
+  color: var(--online);
+}
+
+.status.offline {
+  color: var(--offline);
+}
+
 .last-seen {
   font-size: 0.97rem;
   color: #888;
   margin-top: auto;
 }
-/* Widgets grid (for future GitHub/Discord) */
+
+/* Widgets: GitHub & Discord */
 .widget-grid {
   width: 100%;
   max-width: 900px;
@@ -121,6 +162,7 @@ body {
   gap: 1.2rem;
   margin-bottom: 2.2rem;
 }
+
 .widget-card {
   background: var(--box);
   border-radius: var(--card-radius);
@@ -132,12 +174,14 @@ body {
   display: flex;
   flex-direction: column;
 }
+
 .widget-card h3 {
   font-size: 1.09rem;
   font-weight: 600;
   margin: 0 0 0.44rem 0;
   letter-spacing: 0.03em;
 }
+
 .footer {
   margin-top: 2rem;
   font-size: 0.98rem;
@@ -145,46 +189,77 @@ body {
   text-align: center;
   line-height: 1.44;
 }
+
 abbr {
   border-bottom: 1px dotted;
   cursor: help;
 }
+
 .footer a {
   color: var(--fg);
   text-decoration: underline;
   font-weight: 500;
 }
-/* For small screens */
+
+/* Responsive Anpassungen */
 @media (max-width: 650px) {
   .service-grid, .widget-grid {
     grid-template-columns: 1fr;
   }
-  .header-img {max-height: 100px;}
-  .theme-toggle {right: 1rem;}
-  .footer {font-size: 0.95rem;}
+
+  .header-img {
+    max-height: 100px;
+  }
+
+  .theme-toggle {
+    right: 1rem;
+  }
+
+  .footer {
+    font-size: 0.95rem;
+  }
+
+  header h1 {
+    font-size: 1.45rem;
+  }
+
+  header p {
+    font-size: 0.95rem;
+    padding: 0 1rem;
+  }
 }
+
+/* Statuspunkt-Animation */
 @keyframes status-pulse {
-  0% { opacity: 0.77;}
-  100% { opacity: 1;}
+  0% {
+    opacity: 0.77;
+  }
+  100% {
+    opacity: 1;
+  }
 }
-/* GitHub commit widget tweaks */
+
+/* GitHub Commit Widget Tweaks */
 .commit-branch-label {
   font-weight: 700;
   margin-bottom: 0.3em;
   font-size: 1.04em;
   color: var(--fg);
 }
+
 .commit-list-item {
   margin-bottom: 0.7em;
   border-left: 2.7px solid #b3b3b3;
   padding-left: 0.85em;
 }
+
 .commit-message {
   font-weight: 500;
   font-size: 1.01em;
   margin-bottom: 0.11em;
   color: var(--fg);
 }
+
 .commit-meta {
   font-size: 0.97em;
   color: #888;
@@ -193,6 +268,7 @@ abbr {
   gap: 0.52em;
   flex-wrap: wrap;
 }
+
 .commit-sha {
   color: #888;
   font-family: "Menlo", monospace;
