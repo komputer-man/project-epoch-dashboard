@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://komputer-man.github.io/project-epoch-dashboard/sitemap.xml
