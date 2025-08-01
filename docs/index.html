@@ -307,7 +307,12 @@
           card.innerHTML = `
             <div class="service-name">${service}</div>
             <div class="status ${info.status.toLowerCase()}">${info.status}</div>
-            <div class="last-seen">Last Seen:<br>${displayLastSeen}</div>
+            <div class="last-seen">
+              <abbr title="This is the last time the dashboard checked and updated the status, not a real-time heartbeat.">
+                Last Update:
+              </abbr><br>
+              ${displayLastSeen}
+            </div>
           `;
           grid.appendChild(card);
         });
