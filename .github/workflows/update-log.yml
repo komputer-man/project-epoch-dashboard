@@ -1,12 +1,10 @@
 name: Update Epoch Log
 
-# run every 10 minutes, plus manual trigger
 on:
   schedule:
     - cron:  '*/5 * * * *'
   workflow_dispatch:
 
-# allow the GITHUB_TOKEN to push back to the repo
 permissions:
   contents: write
 
@@ -18,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          persist-credentials: true  # give git access to $GITHUB_TOKEN
+          persist-credentials: true
           fetch-depth: 0
 
       - name: Set up Python
@@ -39,10 +37,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/epoch_dashboard_log.md
-          # only commit & push when there are changes
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
             git commit -m "Update epoch log"
+            git pull --rebase origin main
             git push
           fi
