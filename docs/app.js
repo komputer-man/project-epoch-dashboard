@@ -25,30 +25,36 @@ async function fetchData() {
 
     if (lines[0]?.includes('Service')) lines.splice(0, 2);
 
+    // Fix: track last "real" timestamp for each service
     const latest = {};
+    const lastKnownTime = {};
+
     lines.forEach(line => {
       const [ time, service, status, lastSeen ] = line
         .replace(/^\|\s*/, '')
         .replace(/\s*\|$/, '')
         .split(/\s*\|\s*/);
 
-      if (!latest[service] || time > latest[service].time) {
-        latest[service] = { time, status, lastSeen };
+      // Always set the latest entry
+      latest[service] = { time, status, lastSeen };
+
+      // Track last real timestamp (not N/A)
+      if (lastSeen !== 'N/A') {
+        lastKnownTime[service] = lastSeen;
       }
     });
 
     const grid = document.querySelector('.service-grid');
     grid.innerHTML = '';
     Object.entries(latest).forEach(([service, info]) => {
+      // Use last real timestamp if lastSeen is N/A
       let displayLastSeen;
       if (info.lastSeen === 'N/A') {
-        displayLastSeen = 'N/A';
+        displayLastSeen = lastKnownTime[service]
+          ? new Date(lastKnownTime[service].replace(' ', 'T') + 'Z').toLocaleString('de-DE', { timeZone: 'Europe/Berlin', hour12: false }) + ' CEST'
+          : 'N/A';
       } else {
-        const utc = new Date(info.lastSeen.replace(' ', 'T') + 'Z');
-        displayLastSeen = utc.toLocaleString('de-DE', {
-          timeZone: 'Europe/Berlin',
-          hour12: false
-        }) + ' CEST';
+        displayLastSeen = new Date(info.lastSeen.replace(' ', 'T') + 'Z').toLocaleString('de-DE', { timeZone: 'Europe/Berlin', hour12: false }) + ' CEST';
       }
 
       const card = document.createElement('div');
