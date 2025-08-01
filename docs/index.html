@@ -3,47 +3,87 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ProjectEpoch Dashboard</title>
-  <link rel="icon" href="https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/refs/heads/main/docs/favicon.png" type="image/png" />
+  <title>Project Epoch Dashboard – Live Server Status</title>
+  <meta name="description" content="Live status dashboard for Project Epoch. Monitor uptime for Kezan, Gurubashi, Auth Server, and other infrastructure." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#198754" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Project Epoch Dashboard" />
+  <meta property="og:description" content="Track the status of Project Epoch servers in real time." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/main/docs/favicon.png" />
+  <meta property="og:url" content="https://komputer-man.github.io/project-epoch-dashboard/" />
+  <meta property="og:type" content="website" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Project Epoch Dashboard" />
+  <meta name="twitter:description" content="Live server monitoring for Project Epoch – Kezan, Gurubashi, Website & Auth." />
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/main/docs/favicon.png" />
+
+  <!-- Icons & CSS -->
+  <link rel="icon" href="https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/main/docs/favicon.png" type="image/png" />
   <link rel="stylesheet" href="style.css" />
   <script defer src="app.js"></script>
+
+  <!-- Schema.org -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Project Epoch Dashboard",
+    "url": "https://komputer-man.github.io/project-epoch-dashboard/",
+    "description": "Live server monitoring dashboard for Project Epoch infrastructure including Kezan, Gurubashi, and Auth servers.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Project Epoch"
+    }
+  }
+  </script>
 </head>
 <body>
-  <!-- Theme switch -->
-  <div class="theme-toggle">
-    <button id="themeToggle" aria-label="Toggle theme">Dark Mode</button>
-  </div>
-
-  <!-- Logo image (no box, no shadow, no border) -->
-  <img src="https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/refs/heads/main/docs/website-header.png" alt="Epoch Dashboard Logo" class="header-img" />
-
-  <!-- Service cards grid -->
-  <div class="service-grid">
-    <!-- Cards injected here -->
-  </div>
-
-  <!-- Widgets for GitHub and Discord updates -->
-  <div class="widget-grid">
-    <div class="widget-card" id="github-commits">
-      <h3>Latest Commits</h3>
-      <div id="github-commits-content">Loading…</div>
+  <header>
+    <div class="theme-toggle">
+      <button id="themeToggle" aria-label="Toggle theme">Dark Mode</button>
     </div>
-    <div class="widget-card" id="discord-updates">
-      <h3>#updates Feed</h3>
-      <div id="discord-updates-content">Coming soon…</div>
-    </div>
-  </div>
 
-  <div class="footer">
-    Times shown in <abbr title="Central European Summer Time">CEST</abbr><br>
-    Updated: <span id="lastUpdated">–</span> (CEST)<br><br>
-    ⚙️ This dashboard automatically refreshes every 5 minutes.<br>
-    <em>Note: The GitHub workflow that updates the log and the site’s refresh schedule may not be perfectly in sync, so data might not always be 100% up-to-the-minute.</em><br><br>
-    🖥️ For a live mode with continuous polling, clone the terminal tool:<br>
-    <a href="https://github.com/komputer-man/project-epoch-dashboard/tree/main" target="_blank">
-      github.com/komputer-man/project-epoch-dashboard
-    </a><br><br>
-    <img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fkomputer-man.github.io%2Fproject-epoch-dashboard%2F&label=website+visitors&icon=door-open&color=%23198754&message=&style=social&tz=UTC">
-  </div>
+    <img src="https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/main/docs/website-header.png" alt="Project Epoch Dashboard Logo" class="header-img" />
+
+    <h1>Project Epoch Dashboard</h1>
+    <p>This dashboard monitors live server status for <strong>Project Epoch</strong> – including Website, Authentication Server, Kezan (PvE), and Gurubashi (PvP) realms. Data updates every 5 minutes via GitHub Actions.</p>
+  </header>
+
+  <main>
+    <section class="service-grid" aria-label="Service Status">
+      <!-- Cards injected dynamically -->
+    </section>
+
+    <section class="widget-grid">
+      <article class="widget-card" id="github-commits">
+        <h2>Latest Commits</h2>
+        <div id="github-commits-content">Loading…</div>
+      </article>
+      <article class="widget-card" id="discord-updates">
+        <h2>#updates Feed</h2>
+        <div id="discord-updates-content">Coming soon…</div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Times shown in <abbr title="Central European Summer Time">CEST</abbr></p>
+    <p>Updated: <span id="lastUpdated">–</span> (CEST)</p>
+
+    <p>⚙️ This dashboard automatically refreshes every 5 minutes.</p>
+    <p><em>Note: The GitHub workflow and browser refresh may not be perfectly in sync. Data might lag slightly.</em></p>
+
+    <p>🖥️ For real-time terminal updates, use:<br>
+      <a href="https://github.com/komputer-man/project-epoch-dashboard/tree/main" target="_blank" rel="noopener">
+        github.com/komputer-man/project-epoch-dashboard
+      </a>
+    </p>
+
+    <img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fkomputer-man.github.io%2Fproject-epoch-dashboard%2F&label=website+visitors&icon=door-open&color=%23198754&message=&style=social&tz=UTC" alt="Website visitor counter">
+  </footer>
 </body>
 </html>
