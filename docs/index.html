@@ -58,8 +58,10 @@
       width: auto;
       margin-top: 2.3rem;
       margin-bottom: 0.7rem;
-      border-radius: 1.2rem;
-      box-shadow: 0 1px 12px rgba(0,0,0,0.08);
+      /* No border, shadow, or radius */
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
     }
     .service-grid {
       display: grid;
@@ -174,6 +176,38 @@
       0% { opacity: 0.77;}
       100% { opacity: 1;}
     }
+    /* GitHub commit widget tweaks */
+    .commit-branch-label {
+      font-weight: 700;
+      margin-bottom: 0.3em;
+      font-size: 1.04em;
+      color: var(--fg);
+    }
+    .commit-list-item {
+      margin-bottom: 0.7em;
+      border-left: 2.7px solid #b3b3b3;
+      padding-left: 0.85em;
+    }
+    .commit-message {
+      font-weight: 500;
+      font-size: 1.01em;
+      margin-bottom: 0.11em;
+      color: var(--fg);
+    }
+    .commit-meta {
+      font-size: 0.97em;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 0.52em;
+      flex-wrap: wrap;
+    }
+    .commit-sha {
+      color: #888;
+      font-family: "Menlo", monospace;
+      text-decoration: underline;
+      font-size: 0.96em;
+    }
   </style>
 </head>
 <body>
@@ -182,7 +216,7 @@
     <button id="themeToggle" aria-label="Toggle theme">Dark Mode</button>
   </div>
 
-  <!-- Logo image -->
+  <!-- Logo image (no box, no shadow, no border) -->
   <img src="https://raw.githubusercontent.com/komputer-man/project-epoch-dashboard/refs/heads/main/docs/website-header.png" alt="Epoch Dashboard Logo" class="header-img" />
 
   <!-- Service cards grid -->
@@ -194,7 +228,7 @@
   <div class="widget-grid">
     <div class="widget-card" id="github-commits">
       <h3>Latest Commits</h3>
-      <div id="github-commits-content">Coming soon…</div>
+      <div id="github-commits-content">Loading…</div>
     </div>
     <div class="widget-card" id="discord-updates">
       <h3>#updates Feed</h3>
@@ -291,10 +325,59 @@
     fetchData();
     setInterval(fetchData, 300_000); // Refresh every 5 minutes
 
-    // --- Future: GitHub/Discord widgets: Just add fetch/logic here!
-    // Placeholder for now:
-    // document.getElementById('github-commits-content').innerHTML = '…'
-    // document.getElementById('discord-updates-content').innerHTML = '…'
+    // --- GitHub commits widget ---
+    async function fetchCommits() {
+      // Array of [repo, branch, label]
+      const targets = [
+        {
+          repo: 'Project-Epoch/TrinityCore',
+          branch: 'only-fixes',
+          label: 'only-fixes'
+        },
+        {
+          repo: 'Project-Epoch/TrinityCore',
+          branch: 'epoch-core',
+          label: 'epoch-core'
+        }
+      ];
+      const out = [];
+      for (const t of targets) {
+        try {
+          const url = `https://api.github.com/repos/${t.repo}/commits?sha=${t.branch}&per_page=3`;
+          const res = await fetch(url, {headers: {Accept: 'application/vnd.github+json'}});
+          if (!res.ok) throw new Error('GitHub API error');
+          const commits = await res.json();
+
+          out.push(`<div class="commit-branch-label">${t.label}</div>`);
+          for (const c of commits) {
+            const date = new Date(c.commit.author.date).toLocaleString('de-DE', {
+              timeZone: 'Europe/Berlin', hour12: false
+            });
+            out.push(`
+              <div class="commit-list-item">
+                <div class="commit-message">
+                  ${c.commit.message.replace(/</g, "&lt;").split('\n')[0]}
+                </div>
+                <div class="commit-meta">
+                  <span title="${c.commit.author.name}">${c.commit.author.name}</span>
+                  <a href="${c.html_url}" class="commit-sha" target="_blank">${c.sha.slice(0,7)}</a>
+                  <span>${date}</span>
+                </div>
+              </div>
+            `);
+          }
+        } catch (e) {
+          out.push(`<div style="color:var(--offline);margin-bottom:0.8em;">Failed to load ${t.label} commits.</div>`);
+        }
+      }
+      document.getElementById('github-commits-content').innerHTML = out.join('');
+    }
+
+    fetchCommits();
+    setInterval(fetchCommits, 300_000); // Refresh every 5 min like status
+
+    // --- Discord updates placeholder ---
+    // (To implement: just update #discord-updates-content via API/bot)
   </script>
 </body>
 </html>
