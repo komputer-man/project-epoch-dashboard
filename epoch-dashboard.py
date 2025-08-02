@@ -25,10 +25,6 @@ SERVICES = [
     ("Cloudflare",     "1.1.1.1",         443),
 ]
 
-# ===== State =====
-last_seen = {name: "N/A" for name, _, _ in SERVICES}
-prev_status = {name: None for name, _, _ in SERVICES}
-
 def check_service(ip, port):
     """Return True if TCP port is open."""
     try:
@@ -42,17 +38,30 @@ def check_registration_open(url):
     try:
         with urllib.request.urlopen(url, timeout=TIMEOUT) as response:
             html = response.read().decode("utf-8", errors="ignore")
-            # If the string is present, registration is closed
             return "Registration to Project Epoch is not currently enabled" not in html
     except Exception:
-        return False  # treat as closed/unavailable if error
+        return False
 
-def log_status(service, status, last, logfile):
-    """Append a status line to the markdown log."""
-    ts = time.strftime("%Y-%m-%d %H:%M:%S")
-    line = f"| {ts} | {service} | {status} | {last} |\n"
-    with open(logfile, "a") as f:
-        f.write(line)
+def load_statusfile(logfile):
+    """Lädt den letzten Status aus der Logdatei (ohne Kopfzeile, eine Zeile pro Service)."""
+    status = {}
+    if not os.path.isfile(logfile):
+        return status
+    with open(logfile, "r") as f:
+        for line in f:
+            parts = [x.strip() for x in line.strip().split('|')[1:-1]]
+            if len(parts) == 4:
+                _, service, stat, last = parts
+                status[service] = [stat, last]
+    return status
+
+def save_statusfile(logfile, status):
+    """Speichert alle aktuellen Service-Zeilen in die Logdatei (keine Kopfzeile)."""
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    with open(logfile, "w") as f:
+        for name, _, _ in SERVICES:
+            stat, last = status.get(name, ("Offline", "N/A"))
+            f.write(f"| {now} | {name} | {stat} | {last} |\n")
 
 def send_notification(message, title="Epoch Dashboard"):
     """Cross-platform notification: macOS, Linux, Windows."""
@@ -82,30 +91,29 @@ def notify_start():
     send_notification("Dashboard has started")
 
 def run_once(logfile):
-    """Run a single check pass, log all statuses once."""
-    new_file = not os.path.isfile(logfile)
-    with open(logfile, 'a') as f:
-        if new_file:
-            f.write("| Time | Service | Status | Last Seen |\n")
-            f.write("| ---- | ------- | ------ | --------- |\n")
-        for name, ip, port in SERVICES:
-            if port == "REG":
-                ok = check_registration_open(ip)
-                status = "Online" if ok else "Offline"   # You can also use "Open"/"Closed" here!
-            else:
-                ok = check_service(ip, port)
-                status = "Online" if ok else "Offline"
-            ts = time.strftime("%Y-%m-%d %H:%M:%S")
-            if ok:
-                last_seen[name] = ts
-            last = last_seen[name]
-            f.write(f"| {ts} | {name} | {status} | {last} |\n")
-    return
+    """Run a single check pass, log all statuses once (ohne Kopfzeile, ersetzt Datei)."""
+    prev_status = load_statusfile(logfile)
+    status = {}
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    for name, ip, port in SERVICES:
+        if port == "REG":
+            ok = check_registration_open(ip)
+            stat = "Online" if ok else "Offline"
+        else:
+            ok = check_service(ip, port)
+            stat = "Online" if ok else "Offline"
+        old_last_seen = prev_status.get(name, ["Offline", "N/A"])[1]
+        last_seen = now if stat == "Online" else old_last_seen
+        status[name] = [stat, last_seen]
+    save_statusfile(logfile, status)
 
 def draw_dashboard(stdscr, logfile):
     curses.curs_set(0)
     stdscr.nodelay(True)
+    prev_status = load_statusfile(logfile)
+    status = prev_status.copy()
     while True:
+        now = time.strftime("%Y-%m-%d %H:%M:%S")
         stdscr.erase()
         height, width = stdscr.getmaxyx()
         title = "📡 EPOCH DASHBOARD"
@@ -114,35 +122,34 @@ def draw_dashboard(stdscr, logfile):
         for idx, (name, ip, port) in enumerate(SERVICES, start=3):
             if port == "REG":
                 ok = check_registration_open(ip)
-                status = "Online" if ok else "Offline"
+                stat = "Online" if ok else "Offline"
             else:
                 ok = check_service(ip, port)
-                status = "Online" if ok else "Offline"
-            old = prev_status[name]
-            # state change handling
-            if old is not None and status != old:
-                if ok:
-                    last_seen[name] = time.strftime("%Y-%m-%d %H:%M:%S")
-                notify_change(name, status)
-                log_status(name, status, last_seen[name], logfile)
-            elif old is None and ok:
-                last_seen[name] = time.strftime("%Y-%m-%d %H:%M:%S")
-            prev_status[name] = status
+                stat = "Online" if ok else "Offline"
+            old_stat = prev_status.get(name, ["Offline", "N/A"])[0]
+            old_last = prev_status.get(name, ["Offline", "N/A"])[1]
+            last_seen = now if stat == "Online" else old_last
+            # State change Notification
+            if old_stat != stat:
+                notify_change(name, stat)
+            status[name] = [stat, last_seen]
             sym = "✔" if ok else "✖"
             col = curses.color_pair(2) if ok else curses.color_pair(1)
             stdscr.addstr(idx, 2, sym + " ", col)
             stdscr.addstr(idx, 4, f"{name} ({ip if port != 'REG' else ''}{'' if port == 'REG' else f':{port}'})")
-            last = last_seen[name]
             label = "Last seen:"
-            x = width - len(label) - 1 - len(last)
-            stdscr.addstr(idx, x, f"{label} {last}")
+            x = width - len(label) - 1 - len(last_seen)
+            stdscr.addstr(idx, x, f"{label} {last_seen}")
         # countdown
         for rem in range(INTERVAL, 0, -1):
             stdscr.addstr(len(SERVICES) + 4, 0, f"Next refresh in {rem:2d}s... Press 'q' to quit.")
             stdscr.refresh()
             time.sleep(1)
-        if stdscr.getch() in (ord('q'), ord('Q')):
-            break
+            if stdscr.getch() in (ord('q'), ord('Q')):
+                save_statusfile(logfile, status)
+                return
+        prev_status = status.copy()
+        save_statusfile(logfile, status)
 
 def main():
     parser = argparse.ArgumentParser(description="Epoch Dashboard TUI and logger")
