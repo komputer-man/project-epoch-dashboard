@@ -1,9 +1,13 @@
-name: Build Windows EXE
+name: Build and Release Windows EXE
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (z.B. v1.0.0)'
+        required: false
 
 jobs:
   build:
@@ -28,8 +32,39 @@ jobs:
         run: |
           pyinstaller --onefile epoch-dashboard.py
 
-      - name: Upload EXE
+      - name: Upload EXE as artifact
         uses: actions/upload-artifact@v4
         with:
           name: epoch-dashboard-exe
           path: dist/epoch-dashboard.exe
+
+      - name: Get tag (latest or from workflow_dispatch)
+        id: get_tag
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch" -and "${{ github.event.inputs.tag_name }}") {
+            echo "TAG=${{ github.event.inputs.tag_name }}" >> $env:GITHUB_ENV
+          } else {
+            # Default: use short SHA as tag (for non-release builds)
+            echo "TAG=build-${{ github.sha }}" >> $env:GITHUB_ENV
+          }
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: "Automated build ${{ env.TAG }}"
+          body: |
+            Dieses Release wurde automatisch von GitHub Actions gebaut.
+            EXE aus Commit ${{ github.sha }}.
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload EXE to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          files: dist/epoch-dashboard.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
