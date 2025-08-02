@@ -527,3 +527,9 @@
 | 2025-08-02 02:59:29 | Kezan (PvE) | Offline | N/A |
 | 2025-08-02 02:59:30 | Gurubashi (PvP) | Offline | N/A |
 | 2025-08-02 02:59:30 | Cloudflare | Online | 2025-08-02 02:59:30 |
+| 2025-08-02 03:56:46 | Website | Online | 2025-08-02 03:56:46 |
+| 2025-08-02 03:56:46 | Registration | Offline | N/A |
+| 2025-08-02 03:56:46 | Auth Server | Online | 2025-08-02 03:56:46 |
+| 2025-08-02 03:56:47 | Kezan (PvE) | Offline | N/A |
+| 2025-08-02 03:56:48 | Gurubashi (PvP) | Offline | N/A |
+| 2025-08-02 03:56:48 | Cloudflare | Online | 2025-08-02 03:56:48 |
