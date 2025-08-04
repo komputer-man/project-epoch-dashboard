@@ -19,9 +19,9 @@ DEFAULT_LOGFILE = "epoch_dashboard_log.md"
 SERVICES = [
     ("Website",        "198.185.159.145",   80),
     ("Registration",   "https://account.project-epoch.net", "REG"),  # SPECIAL!
-    ("Auth Server",    "198.244.165.233", 3724),
-    ("Kezan (PvE)",    "198.244.165.233", 8085),
-    ("Gurubashi (PvP)","198.244.165.233", 8086),
+    ("Auth Server",    "57.128.162.57", 3724),
+    ("Kezan (PvE)",    "57.128.162.57", 8085),
+    ("Gurubashi (PvP)","57.128.162.57", 8086),
     ("Cloudflare",     "1.1.1.1",         443),
 ]
 
