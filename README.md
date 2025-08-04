@@ -1,3 +1,4 @@
+![Badge](https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2Fkomputer-man%2Fproject-epoch-dashboard&label=Project+Epoch+Dashboard&icon=github&color=%23198754&message=&style=flat&tz=UTC)
 # Epoch Dashboard
 
 A minimal terminal-based monitor that checks TCP ports for configured services and displays their status and last-seen timestamps. State changes are logged in Markdown and trigger desktop notifications.
