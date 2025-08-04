@@ -32,7 +32,7 @@ jobs:
         run: |
           python epoch-dashboard.py --once --output docs/epoch_dashboard_log.md
 
-      - name: Commit & push (if changed)
+      - name: Commit & push (if changed, auto-resolve conflicts)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -41,6 +41,13 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Update epoch log"
-            git pull --rebase origin main
-            git push
+            # Versuche Pull & Rebase, bei Konflikt Workflow sauber beenden:
+            if git pull --rebase origin main; then
+              git push
+            else
+              echo "Merge conflict! Aborting rebase, discarding this update."
+              git rebase --abort
+              git reset --hard origin/main
+              exit 0
+            fi
           fi
