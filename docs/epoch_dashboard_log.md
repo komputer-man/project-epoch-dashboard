@@ -1,6 +1,6 @@
-| 2025-08-05 07:52:34 | Website | Online | 2025-08-05 07:52:32 |
-| 2025-08-05 07:52:34 | Registration | Offline | N/A |
-| 2025-08-05 07:52:34 | Auth Server | Online | 2025-08-05 07:52:32 |
-| 2025-08-05 07:52:34 | Kezan (PvE) | Offline | 2025-08-03 17:58:02 |
-| 2025-08-05 07:52:34 | Gurubashi (PvP) | Offline | N/A |
-| 2025-08-05 07:52:34 | Cloudflare | Online | 2025-08-05 07:52:32 |
+| 2025-08-05 07:59:46 | Website | Online | 2025-08-05 07:59:44 |
+| 2025-08-05 07:59:46 | Registration | Offline | N/A |
+| 2025-08-05 07:59:46 | Auth Server | Online | 2025-08-05 07:59:44 |
+| 2025-08-05 07:59:46 | Kezan (PvE) | Offline | 2025-08-03 17:58:02 |
+| 2025-08-05 07:59:46 | Gurubashi (PvP) | Offline | N/A |
+| 2025-08-05 07:59:46 | Cloudflare | Online | 2025-08-05 07:59:44 |
